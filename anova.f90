@@ -1,5 +1,5 @@
 module anova_mod
-  use iso_fortran_env
+  use iso_fortran_env, only: int64, real64
   use kind_mod, only: dp
   implicit none
   private
