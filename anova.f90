@@ -4,7 +4,7 @@ module anova_mod
   implicit none
   private
   public :: aonew
-  private :: log_gamma, betacf
+  private :: log_gamma, betacf, incbet
   real(real64), parameter :: nan =  transfer(-2251799813685248_int64, 1._real64)
 contains
 
@@ -35,7 +35,6 @@ contains
   ! beta function by modified Lentz's method.
   !--------------------------------------------------------------------
   elemental real(kind=dp) function betacf(a, b, x)
-    implicit none
     real(kind=dp), intent(in) :: a, b, x
     real(kind=dp) :: qab, qap, qam, c, d, h, aa, del
     integer :: m_int, itmax
@@ -72,10 +71,9 @@ contains
   end function betacf
 
   !--------------------------------------------------------------------
-  ! function dincbet: computes the regularized incomplete beta function.
+  ! function incbet: computes the regularized incomplete beta function.
   !--------------------------------------------------------------------
-  real(kind=dp) function dincbet(a, b, x)
-    implicit none
+  elemental real(kind=dp) function incbet(a, b, x)
     real(kind=dp), intent(in) :: a, b, x
     real(kind=dp) :: bt
     if (x == 0.0d0 .or. x == 1.0d0) then
@@ -84,11 +82,11 @@ contains
        bt = dexp(log_gamma(a + b) - log_gamma(a) - log_gamma(b) + a * dlog(x) + b * dlog(1.0d0 - x))
     end if
     if (x < (a + 1.0d0) / (a + b + 2.0d0)) then
-       dincbet = bt * betacf(a, b, x) / a
+       incbet = bt * betacf(a, b, x) / a
     else
-       dincbet = 1.0d0 - bt * betacf(b, a, 1.0d0 - x) / b
+       incbet = 1.0d0 - bt * betacf(b, a, 1.0d0 - x) / b
     end if
-  end function dincbet
+  end function incbet
 
   !--------------------------------------------------------------------
   ! subroutine aonew: performs one-way analysis of variance.
@@ -267,9 +265,9 @@ contains
     aov(9) = fstat
 
     ! compute p-value using the incomplete beta function:
-    ! p = dincbet(d2/2, d1/2, d2/(d2+d1*f))
+    ! p = incbet(d2/2, d1/2, d2/(d2+d1*f))
     if ((ms_within > 0.0d0) .and. (aov(1) > 0.0d0) .and. (aov(2) > 0.0d0)) then
-       pval = dincbet(aov(2) / 2.0d0, aov(1) / 2.0d0, aov(2) / (aov(2) + aov(1) * fstat))
+       pval = incbet(aov(2) / 2.0d0, aov(1) / 2.0d0, aov(2) / (aov(2) + aov(1) * fstat))
     else
        pval = nan
     end if
