@@ -21,13 +21,13 @@ contains
          -1.231739572450155d0, 0.1208650973866179d0, -0.5395239384953d0 /)
     x = xx - 1.0d0
     tmp = x + 5.5d0
-    tmp = tmp - (x + 0.5d0) * dlog(tmp)
+    tmp = tmp - (x + 0.5d0) * log(tmp)
     ser = 1.000000000190015d0
     do j = 1, 6
        x = x + 1.0d0
        ser = ser + cof(j) / x
     end do
-    log_gamma = -tmp + dlog(2.5066282746310005d0 * ser)
+    log_gamma = -tmp + log(2.5066282746310005d0 * ser)
   end function log_gamma
 
   !--------------------------------------------------------------------
@@ -79,7 +79,7 @@ contains
     if (x == 0.0d0 .or. x == 1.0d0) then
        bt = 0.0d0
     else
-       bt = dexp(log_gamma(a + b) - log_gamma(a) - log_gamma(b) + a * dlog(x) + b * dlog(1.0d0 - x))
+       bt = dexp(log_gamma(a + b) - log_gamma(a) - log_gamma(b) + a * log(x) + b * log(1.0d0 - x))
     end if
     if (x < (a + 1.0d0) / (a + b + 2.0d0)) then
        incbet = bt * betacf(a, b, x) / a
