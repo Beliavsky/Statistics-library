@@ -12,11 +12,11 @@ contains
   ! function log_gamma: computes the natural logarithm of the gamma
   ! function using a Lanczos approximation.
   !--------------------------------------------------------------------
-  double precision function log_gamma(xx)
-    double precision, intent(in) :: xx
-    double precision :: x, tmp, ser
+  real(kind=dp) function log_gamma(xx)
+    real(kind=dp), intent(in) :: xx
+    real(kind=dp) :: x, tmp, ser
     integer :: j
-    double precision, parameter :: cof(6) = (/ &
+    real(kind=dp), parameter :: cof(6) = (/ &
          76.18009172947146d0, -86.50532032941677d0, 24.01409824083091d0, &
          -1.231739572450155d0, 0.1208650973866179d0, -0.5395239384953d0 /)
     x = xx - 1.0d0
@@ -34,12 +34,12 @@ contains
   ! function betacf: evaluates the continued fraction for the incomplete
   ! beta function by modified Lentz's method.
   !--------------------------------------------------------------------
-  double precision function betacf(a, b, x)
+  real(kind=dp) function betacf(a, b, x)
     implicit none
-    double precision, intent(in) :: a, b, x
-    double precision :: qab, qap, qam, c, d, h, aa, del
+    real(kind=dp), intent(in) :: a, b, x
+    real(kind=dp) :: qab, qap, qam, c, d, h, aa, del
     integer :: m_int, itmax
-    double precision, parameter :: eps = 3.0d-7
+    real(kind=dp), parameter :: eps = 3.0d-7
     itmax = 100
 
     qab = a + b
@@ -74,10 +74,10 @@ contains
   !--------------------------------------------------------------------
   ! function dincbet: computes the regularized incomplete beta function.
   !--------------------------------------------------------------------
-  double precision function dincbet(a, b, x)
+  real(kind=dp) function dincbet(a, b, x)
     implicit none
-    double precision, intent(in) :: a, b, x
-    double precision :: bt
+    real(kind=dp), intent(in) :: a, b, x
+    real(kind=dp) :: bt
     if (x == 0.0d0 .or. x == 1.0d0) then
        bt = 0.0d0
     else
@@ -96,14 +96,14 @@ contains
   !
   ! Required arguments:
   !   ni   - integer vector (length ngroup) with number of responses per group.
-  !   y    - double precision vector containing responses (grouped contiguously).
-  !   aov  - double precision vector (length 15) that will hold the analysis
+  !   y    - real(kind=dp) vector containing responses (grouped contiguously).
+  !   aov  - real(kind=dp) vector (length 15) that will hold the analysis
   !          of variance statistics.
   !
   ! Optional arguments:
   !   ngroup - number of groups (default: size(ni)).
   !   iprint - printing option (0: none; 1: print aov; 2: print stat; 3: print both)
-  !   stat   - double precision matrix (ngroup by 4) for group statistics.
+  !   stat   - real(kind=dp) matrix (ngroup by 4) for group statistics.
   !   ldstat - leading dimension of stat (default: size(stat,1)).
   !   nmiss  - integer output; number of missing values (elements of y that are nan).
   !
@@ -126,11 +126,11 @@ contains
   !--------------------------------------------------------------------
   subroutine aonew(ni, y, aov, ngroup, iprint, stat, ldstat, nmiss)
     integer, intent(in) :: ni(:)
-    double precision, intent(in) :: y(:)
-    double precision, intent(out) :: aov(15)
+    real(kind=dp), intent(in) :: y(:)
+    real(kind=dp), intent(out) :: aov(15)
     integer, intent(in), optional :: ngroup
     integer, intent(in), optional :: iprint
-    double precision, intent(out), optional :: stat(:,:)
+    real(kind=dp), intent(out), optional :: stat(:,:)
     integer, intent(in), optional :: ldstat
     integer, intent(out), optional :: nmiss
 
@@ -138,10 +138,10 @@ contains
     integer :: i, j, count, total, nm
     integer, allocatable :: group_n(:)
     integer, allocatable :: group_start(:)
-    double precision, allocatable :: group_mean(:), group_sd(:)
-    double precision :: sum, ssum, mean, overall_mean, overall_sum
-    double precision :: ss_among, ss_within, ss_total
-    double precision :: ms_among, ms_within, fstat, pval, r2, adj_r2, s_error, cv
+    real(kind=dp), allocatable :: group_mean(:), group_sd(:)
+    real(kind=dp) :: sum, ssum, mean, overall_mean, overall_sum
+    real(kind=dp) :: ss_among, ss_within, ss_total
+    real(kind=dp) :: ms_among, ms_within, fstat, pval, r2, adj_r2, s_error, cv
 
     nm = 0
     total = 0
