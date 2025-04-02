@@ -17,17 +17,17 @@ contains
     real(kind=dp) :: x, tmp, ser
     integer :: j
     real(kind=dp), parameter :: cof(6) = (/ &
-         76.18009172947146d0, -86.50532032941677d0, 24.01409824083091d0, &
-         -1.231739572450155d0, 0.1208650973866179d0, -0.5395239384953d0 /)
-    x = xx - 1.0d0
-    tmp = x + 5.5d0
-    tmp = tmp - (x + 0.5d0) * log(tmp)
-    ser = 1.000000000190015d0
+         76.18009172947146_dp, -86.50532032941677_dp, 24.01409824083091_dp, &
+         -1.231739572450155_dp, 0.1208650973866179_dp, -0.5395239384953_dp /)
+    x = xx - 1.0_dp
+    tmp = x + 5.5_dp
+    tmp = tmp - (x + 0.5_dp) * log(tmp)
+    ser = 1.000000000190015_dp
     do j = 1, 6
-       x = x + 1.0d0
+       x = x + 1.0_dp
        ser = ser + cof(j) / x
     end do
-    log_gamma = -tmp + log(2.5066282746310005d0 * ser)
+    log_gamma = -tmp + log(2.5066282746310005_dp * ser)
   end function log_gamma
 
   !--------------------------------------------------------------------
@@ -42,30 +42,30 @@ contains
     itmax = 100
 
     qab = a + b
-    qap = a + 1.0d0
-    qam = a - 1.0d0
-    c = 1.0d0
-    d = 1.0d0 - qab * x / qap
-    if (d == 0.0d0) d = 1.0d-30
-    d = 1.0d0 / d
+    qap = a + 1.0_dp
+    qam = a - 1.0_dp
+    c = 1.0_dp
+    d = 1.0_dp - qab * x / qap
+    if (d == 0.0_dp) d = 1.0d-30
+    d = 1.0_dp / d
     h = d
     do m_int = 1, itmax
-       aa = m_int * (b - m_int) * x / ((qam + 2.0d0 * m_int) * (a + 2.0d0 * m_int))
-       d = 1.0d0 + aa * d
-       if (d == 0.0d0) d = 1.0d-30
-       c = 1.0d0 + aa / c
-       if (c == 0.0d0) c = 1.0d-30
-       d = 1.0d0 / d
+       aa = m_int * (b - m_int) * x / ((qam + 2.0_dp * m_int) * (a + 2.0_dp * m_int))
+       d = 1.0_dp + aa * d
+       if (d == 0.0_dp) d = 1.0d-30
+       c = 1.0_dp + aa / c
+       if (c == 0.0_dp) c = 1.0d-30
+       d = 1.0_dp / d
        h = h * d * c
-       aa = -(a + m_int) * (qab + m_int) * x / ((a + 2.0d0 * m_int) * (qap + 2.0d0 * m_int))
-       d = 1.0d0 + aa * d
-       if (d == 0.0d0) d = 1.0d-30
-       c = 1.0d0 + aa / c
-       if (c == 0.0d0) c = 1.0d-30
-       d = 1.0d0 / d
+       aa = -(a + m_int) * (qab + m_int) * x / ((a + 2.0_dp * m_int) * (qap + 2.0_dp * m_int))
+       d = 1.0_dp + aa * d
+       if (d == 0.0_dp) d = 1.0d-30
+       c = 1.0_dp + aa / c
+       if (c == 0.0_dp) c = 1.0d-30
+       d = 1.0_dp / d
        del = d * c
        h = h * del
-       if (dabs(del - 1.0d0) < eps) exit
+       if (dabs(del - 1.0_dp) < eps) exit
     end do
     betacf = h
   end function betacf
@@ -76,15 +76,15 @@ contains
   elemental real(kind=dp) function incbet(a, b, x)
     real(kind=dp), intent(in) :: a, b, x
     real(kind=dp) :: bt
-    if (x == 0.0d0 .or. x == 1.0d0) then
-       bt = 0.0d0
+    if (x == 0.0_dp .or. x == 1.0_dp) then
+       bt = 0.0_dp
     else
-       bt = dexp(log_gamma(a + b) - log_gamma(a) - log_gamma(b) + a * log(x) + b * log(1.0d0 - x))
+       bt = dexp(log_gamma(a + b) - log_gamma(a) - log_gamma(b) + a * log(x) + b * log(1.0_dp - x))
     end if
-    if (x < (a + 1.0d0) / (a + b + 2.0d0)) then
+    if (x < (a + 1.0_dp) / (a + b + 2.0_dp)) then
        incbet = bt * betacf(a, b, x) / a
     else
-       incbet = 1.0d0 - bt * betacf(b, a, 1.0d0 - x) / b
+       incbet = 1.0_dp - bt * betacf(b, a, 1.0_dp - x) / b
     end if
   end function incbet
 
@@ -143,8 +143,8 @@ contains
 
     nm = 0
     total = 0
-    overall_sum = 0.0d0
-    ss_within = 0.0d0
+    overall_sum = 0.0_dp
+    ss_within = 0.0_dp
 
     ! determine number of groups (default: size(ni))
     if (present(ngroup)) then
@@ -181,7 +181,7 @@ contains
     ! compute group means and count nonmissing values
     do i = 1, ngrp
        count = 0
-       sum = 0.0d0
+       sum = 0.0_dp
        do j = group_start(i), group_start(i) + ni(i) - 1
           ! test for nan: a value is nan if it does not equal itself
           if (y(j) == y(j)) then
@@ -194,7 +194,7 @@ contains
        if (count > 0) then
           mean = sum / dble(count)
        else
-          mean = 0.0d0
+          mean = 0.0_dp
        end if
        group_n(i) = count
        group_mean(i) = mean
@@ -205,19 +205,19 @@ contains
     if (total > 0) then
        overall_mean = overall_sum / dble(total)
     else
-       overall_mean = 0.0d0
+       overall_mean = 0.0_dp
     end if
 
     ! compute within-group sum of squares and group standard deviations
     do i = 1, ngrp
-       ssum = 0.0d0
+       ssum = 0.0_dp
        do j = group_start(i), group_start(i) + ni(i) - 1
           if (y(j) == y(j)) then
              ssum = ssum + (y(j) - group_mean(i))**2
           end if
        end do
        if (group_n(i) > 1) then
-          group_sd(i) = dsqrt(ssum / (dble(group_n(i)) - 1.0d0))
+          group_sd(i) = dsqrt(ssum / (dble(group_n(i)) - 1.0_dp))
        else
           group_sd(i) = nan  ! set to nan when undefined
        end if
@@ -225,7 +225,7 @@ contains
     end do
 
     ! compute among-group sum of squares
-    ss_among = 0.0d0
+    ss_among = 0.0_dp
     do i = 1, ngrp
        ss_among = ss_among + dble(group_n(i)) * (group_mean(i) - overall_mean)**2
     end do
@@ -242,13 +242,13 @@ contains
     aov(5) = ss_within
     aov(6) = ss_total
 
-    if (aov(1) > 0.0d0) then
+    if (aov(1) > 0.0_dp) then
        ms_among = ss_among / aov(1)
     else
        ms_among = nan
     end if
 
-    if (aov(2) > 0.0d0) then
+    if (aov(2) > 0.0_dp) then
        ms_within = ss_within / aov(2)
     else
        ms_within = nan
@@ -257,7 +257,7 @@ contains
     aov(7) = ms_among
     aov(8) = ms_within
 
-    if (ms_within > 0.0d0) then
+    if (ms_within > 0.0_dp) then
        fstat = ms_among / ms_within
     else
        fstat = nan
@@ -266,28 +266,28 @@ contains
 
     ! compute p-value using the incomplete beta function:
     ! p = incbet(d2/2, d1/2, d2/(d2+d1*f))
-    if ((ms_within > 0.0d0) .and. (aov(1) > 0.0d0) .and. (aov(2) > 0.0d0)) then
-       pval = incbet(aov(2) / 2.0d0, aov(1) / 2.0d0, aov(2) / (aov(2) + aov(1) * fstat))
+    if ((ms_within > 0.0_dp) .and. (aov(1) > 0.0_dp) .and. (aov(2) > 0.0_dp)) then
+       pval = incbet(aov(2) / 2.0_dp, aov(1) / 2.0_dp, aov(2) / (aov(2) + aov(1) * fstat))
     else
        pval = nan
     end if
     aov(10) = pval
 
-    if (ss_total > 0.0d0) then
-       r2 = (ss_among / ss_total) * 100.0d0
+    if (ss_total > 0.0_dp) then
+       r2 = (ss_among / ss_total) * 100.0_dp
     else
        r2 = nan
     end if
     aov(11) = r2
 
     if (total - ngrp > 0) then
-       adj_r2 = (1.0d0 - (dble(total - 1) / dble(total - ngrp)) * (1.0d0 - ss_among / ss_total)) * 100.0d0
+       adj_r2 = (1.0_dp - (dble(total - 1) / dble(total - ngrp)) * (1.0_dp - ss_among / ss_total)) * 100.0_dp
     else
        adj_r2 = nan
     end if
     aov(12) = adj_r2
 
-    if (ms_within >= 0.0d0) then
+    if (ms_within >= 0.0_dp) then
        s_error = dsqrt(ms_within)
     else
        s_error = nan
@@ -296,8 +296,8 @@ contains
 
     aov(14) = overall_mean
 
-    if (overall_mean /= 0.0d0) then
-       cv = (s_error / overall_mean) * 100.0d0
+    if (overall_mean /= 0.0_dp) then
+       cv = (s_error / overall_mean) * 100.0_dp
     else
        cv = nan
     end if
