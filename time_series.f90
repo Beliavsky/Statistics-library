@@ -1,11 +1,8 @@
-module kind_mod
-  implicit none
-  integer, parameter :: dp = selected_real_kind(15, 307)
-end module kind_mod
-
 module time_series_mod
   use kind_mod
   implicit none
+  private
+  public :: estimate_missing
 contains
 
   subroutine estimate_missing(itime_points, w, z, nobsw, imeth, maxlag, maxbc, tolbc, tolss, relerr, maxit, wmean, nobsz, itime_points_full, miss_index)
@@ -16,8 +13,8 @@ contains
     integer, intent(in), optional :: nobsw, imeth, maxlag, maxbc, maxit
     real(kind=dp), intent(in), optional :: tolbc, tolss, relerr, wmean
     integer, intent(out), optional :: nobsz
-    integer, allocatable, intent(out) :: itime_points_full(:)
-    integer, allocatable, intent(out) :: miss_index(:)
+    integer, allocatable, intent(out), optional :: itime_points_full(:)
+    integer, allocatable, intent(out), optional :: miss_index(:)
 
     integer :: nobs, i, full_length, ip, j, gap_start, gap_end
     integer :: method
@@ -46,9 +43,7 @@ contains
 
     ! fill the full time axis if the optional output is provided
     if (present(itime_points_full)) then
-       if (.not. allocated(itime_points_full)) then
-          allocate(itime_points_full(full_length))
-       end if
+       allocate(itime_points_full(full_length))
        do i = 1, full_length
           itime_points_full(i) = start_time + i - 1
        end do
@@ -71,9 +66,7 @@ contains
        end if
     end do
     if (present(miss_index)) then
-       if (.not. allocated(miss_index)) then
-          allocate(miss_index(count_miss))
-       end if
+       allocate(miss_index(count_miss))
        count_miss = 0
        do i = 1, full_length
           if (z(i) == -9999.0_dp) then
@@ -181,66 +174,3 @@ contains
 
 end module time_series_mod
 
-program test_estimate_missing
-  use kind_mod
-  use time_series_mod
-  implicit none
-  integer, parameter :: n = 200
-  integer :: i, n_obs, ntimes, miss_ind, j
-  integer, dimension(n) :: tpoints
-  integer, allocatable :: times(:), missing_index(:), times2(:)
-  real(kind=dp), dimension(n) :: x1, y, x2
-  real(kind=dp), allocatable :: result(:)
-
-  ! initialize reference time points tpoints = 1,2,...,200
-  do i = 1, n
-     tpoints(i) = i
-  end do
-
-  ! set up a full time series y (here using a sine function as a dummy signal)
-  do i = 1, n
-     y(i) = sin(0.1_dp * real(i, kind=dp))
-  end do
-
-  ! x1 holds the full series
-  x1 = y
-
-  ! build series with missing observations:
-  ! remove observations at indices 130, 140, 141, 160, 175, and 176
-  allocate(times2(n))
-  n_obs = 0
-  do i = 1, n
-     if (i == 130 .or. i == 140 .or. i == 141 .or. i == 160 .or. i == 175 .or. i == 176) cycle
-     n_obs = n_obs + 1
-     times2(n_obs) = tpoints(i)
-     x2(n_obs) = y(i)
-  end do
-
-  ntimes = tpoints(n) - tpoints(1) + 1
-  allocate(times(ntimes))
-  allocate(missing_index(ntimes - n_obs))
-
-  ! test all four methods (0: median, 1: cubic spline, 2: ar(1), 3: ar(p))
-  do j = 0, 3
-     if (j /= 3) then
-        call estimate_missing(times2(1:n_obs), x2(1:n_obs), result, nobsw=n_obs, imeth=j, &
-                              itime_points_full=times, miss_index=missing_index)
-     else
-        call estimate_missing(times2(1:n_obs), x2(1:n_obs), result, nobsw=n_obs, imeth=j, maxlag=20, &
-                              itime_points_full=times, miss_index=missing_index)
-     end if
-     write(*,*) "method: ", j
-     write(*,*) "time    actual    predicted    difference"
-     do i = 1, size(missing_index)
-        miss_ind = missing_index(i)
-        write(*, '(i4, 6x, f6.3, 8x, f6.3, 7x, f6.3)') times(miss_ind), x1(miss_ind), result(miss_ind), abs(x1(miss_ind) - result(miss_ind))
-     end do
-     write(*,*)
-     if (allocated(result)) deallocate(result)
-  end do
-
-  if (allocated(times)) deallocate(times)
-  if (allocated(missing_index)) deallocate(missing_index)
-  if (allocated(times2)) deallocate(times2)
-
-end program test_estimate_missing
