@@ -1,12 +1,11 @@
 module time_series_mod
-  use kind_mod
+  use kind_mod, only: dp
   implicit none
-  private
-  public :: estimate_missing
 contains
 
-  subroutine estimate_missing(itime_points, w, z, nobsw, imeth, maxlag, maxbc, tolbc, tolss, relerr, maxit, wmean, nobsz, itime_points_full, miss_index)
-    ! dummy implementation of missing value estimation as specified
+  subroutine estimate_missing(itime_points, w, z, nobsw, imeth, maxlag, &
+    maxbc, tolbc, tolss, relerr, maxit, wmean, nobsz, itime_points_full, miss_index)
+    ! implementation of missing value estimation with AR(1) method implemented
     integer, intent(in) :: itime_points(:)
     real(kind=dp), intent(in) :: w(:)
     real(kind=dp), allocatable, intent(out) :: z(:)
@@ -23,6 +22,8 @@ contains
     real(kind=dp), allocatable :: median_array(:)
     integer :: n_before, n_after, k, idx_prev, idx_next
     integer :: count_miss
+    real(kind=dp) :: mu, phi, forecast, prev_obs, last_obs
+    real(kind=dp), parameter :: eps = 1e-8_dp
 
     ! set defaults
     if (present(nobsw)) then
@@ -36,12 +37,18 @@ contains
        method = 3
     end if
 
+    if (present(wmean)) then
+       mu = wmean
+    else
+       mu = 0.0_dp
+    end if
+
     start_time = itime_points(1)
     full_length = itime_points(nobs) - start_time + 1
 
     allocate(z(full_length))
 
-    ! fill the full time axis if the optional output is provided
+    ! fill full time axis if requested
     if (present(itime_points_full)) then
        allocate(itime_points_full(full_length))
        do i = 1, full_length
@@ -52,13 +59,13 @@ contains
     ! initialize z with a flag value
     z = -9999.0_dp
 
-    ! place observed values into z at the correct positions
+    ! place observed values into z at correct positions
     do i = 1, nobs
        ip = itime_points(i) - start_time + 1
        z(ip) = w(i)
     end do
 
-    ! identify missing indices and, if requested, record them
+    ! record missing indices if requested
     count_miss = 0
     do i = 1, full_length
        if (z(i) == -9999.0_dp) then
@@ -120,9 +127,26 @@ contains
                    slope = (z(idx_next) - z(idx_prev)) / real(idx_next - idx_prev, kind=dp)
                    z(ip) = z(idx_prev) + slope * dt
                 end do
-             case (2)  ! ar(1) forecast (dummy: use last observed value)
+             case (2)  ! ar(1) forecast
+                ! use the last two values before the gap; if available, use indices gap_start-2 and gap_start-1
+                if (gap_start >= 3) then
+                   prev_obs = z(gap_start - 2)
+                   last_obs = z(gap_start - 1)
+                else
+                   prev_obs = mu
+                   last_obs = z(gap_start - 1)
+                end if
                 do ip = gap_start, gap_end
-                   z(ip) = z(idx_prev)
+                   if (abs(prev_obs - mu) < eps) then
+                      phi = 0.0_dp
+                   else
+                      phi = (last_obs - mu) / (prev_obs - mu)
+                   end if
+                   forecast = mu + phi * (last_obs - mu)
+                   z(ip) = forecast
+                   ! update previous observations for next forecast in the gap
+                   prev_obs = last_obs
+                   last_obs = forecast
                 end do
              case (3)  ! ar(p) forecast (dummy: use last observed value)
                 do ip = gap_start, gap_end
@@ -142,14 +166,13 @@ contains
 
   end subroutine estimate_missing
 
-  ! simple bubble sort for small arrays
   subroutine sort_array(a)
     real(kind=dp), intent(inout) :: a(:)
     integer :: i, j, n
     real(kind=dp) :: temp
     n = size(a)
-    do i = 1, n-1
-       do j = i+1, n
+    do i = 1, n - 1
+       do j = i + 1, n
           if (a(i) > a(j)) then
              temp = a(i)
              a(i) = a(j)
@@ -159,7 +182,6 @@ contains
     end do
   end subroutine sort_array
 
-  ! compute the median of a sorted array
   function compute_median(a) result(med)
     real(kind=dp), intent(in) :: a(:)
     real(kind=dp) :: med
@@ -173,4 +195,3 @@ contains
   end function compute_median
 
 end module time_series_mod
-
