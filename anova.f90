@@ -12,7 +12,7 @@ contains
   ! function log_gamma: computes the natural logarithm of the gamma
   ! function using a Lanczos approximation.
   !--------------------------------------------------------------------
-  real(kind=dp) function log_gamma(xx)
+  elemental real(kind=dp) function log_gamma(xx)
     real(kind=dp), intent(in) :: xx
     real(kind=dp) :: x, tmp, ser
     integer :: j
@@ -34,7 +34,7 @@ contains
   ! function betacf: evaluates the continued fraction for the incomplete
   ! beta function by modified Lentz's method.
   !--------------------------------------------------------------------
-  real(kind=dp) function betacf(a, b, x)
+  elemental real(kind=dp) function betacf(a, b, x)
     implicit none
     real(kind=dp), intent(in) :: a, b, x
     real(kind=dp) :: qab, qap, qam, c, d, h, aa, del
